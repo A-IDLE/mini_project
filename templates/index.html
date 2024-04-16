@@ -4,6 +4,74 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Project MoMo</title>
+
+    <style>
+      /* Body styles */
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* 요소들을 수직 가운데로 정렬 */
+      }
+
+      /* Header styles */
+      h1 {
+        font-size: 2em;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      /* Form styles */
+      .form-container {
+        margin-bottom: 20px;
+      }
+
+      .form-container form {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* 요소들을 수직 가운데로 정렬 */
+      }
+
+      label {
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      input[type="file"] {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+
+      button {
+        padding: 8px 15px; /* 작은 버튼 크기로 조정 */
+        background-color: #e03939;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+
+      /* Image & Video display styles */
+      img,
+      video {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+      }
+
+      h2 {
+        margin-bottom: 10px;
+        color: #333;
+      }
+    </style>
+
     <script>
       function previewImage(event) {
         var reader = new FileReader();
@@ -32,19 +100,62 @@
           console.error("Failed to transform image:", result);
         }
       }
+
+      async function uploadAndTransformVideo() {
+        var videoInput = document.querySelector('input[type="file"]');
+        var formData = new FormData();
+        formData.append("video", videoInput.files[0]);
+
+        const response = await fetch("/uploadvideo", {
+          method: "POST",
+          body: formData,
+        });
+
+        const videoElement = document.getElementById("videoDisplay");
+        const stream = await response.body.getReader().read();
+        const reader = new ReadableStream({
+          start(controller) {
+            controller.enqueue(stream.value);
+          },
+        });
+        videoElement.srcObject = new MediaStream([reader]);
+      }
     </script>
   </head>
   <body>
     <h1>Project MoMo</h1>
-    <form>
-      <input type="file" accept="image/*" onchange="previewImage(event)" />
-      <button type="button" onclick="uploadAndTransform()">
-        Transform Image
-      </button>
-    </form>
+    <div class="form-container">
+      <form>
+        <input
+          type="file"
+          name="image"
+          accept="image/*"
+          onchange="previewImage(event)"
+        />
+        <button type="button" onclick="uploadAndTransform()">
+          Transform Image
+        </button>
+      </form>
+    </div>
     <h2>Original Image:</h2>
     <img id="imageDisplay" style="max-width: 100%; height: auto" />
     <h2>Transformed Image:</h2>
     <img id="transformedImage" style="max-width: 100%; height: auto" />
+
+    <div class="form-container">
+      <form>
+        <input type="file" name="video" accept="video/*" />
+        <button type="button" onclick="uploadAndTransformVideo()">
+          Upload and Transform
+        </button>
+      </form>
+    </div>
+    <h2>Original Video:</h2>
+    <video
+      id="videoDisplay"
+      autoplay
+      controls
+      style="max-width: 100%; height: auto"
+    ></video>
   </body>
 </html>
