@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project MoMo</title>
+    <script>
+      function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var output = document.getElementById("imageDisplay");
+          output.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+      }
+
+      async function uploadAndTransform() {
+        var fileInput = document.querySelector('input[type="file"]');
+        var formData = new FormData();
+        formData.append("image", fileInput.files[0]);
+
+        const response = await fetch("/uploadimage", {
+          method: "POST",
+          body: formData,
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+          document.getElementById("transformedImage").src =
+            "data:image/jpeg;base64," + result.image;
+        } else {
+          console.error("Failed to transform image:", result);
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Project MoMo</h1>
+    <form>
+      <input type="file" accept="image/*" onchange="previewImage(event)" />
+      <button type="button" onclick="uploadAndTransform()">
+        Transform Image
+      </button>
+    </form>
+    <h2>Original Image:</h2>
+    <img id="imageDisplay" style="max-width: 100%; height: auto" />
+    <h2>Transformed Image:</h2>
+    <img id="transformedImage" style="max-width: 100%; height: auto" />
+  </body>
+</html>
