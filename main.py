@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Form, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
 from fastapi.templating import Jinja2Templates
 import cv2
@@ -11,15 +11,13 @@ fastapi_app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 # 메인화면
+
+
 @fastapi_app.get("/")
 def home(request: Request):
-    
+
     return templates.TemplateResponse("index.html",
-                                      {"request": request,})
-
-
-
-
+                                      {"request": request, })
 
 
 @fastapi_app.post("/uploadimage")
@@ -36,12 +34,35 @@ async def upload_image(image: UploadFile = File(...)):
     return JSONResponse(content={"image": encoded_img_str})
 
 
+# generate video frames
+def generate_frames(video_path):
+    cap = cv2.VideoCapture(video_path)
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        # Convert frame to grayscale
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Encode frame to JPEG format
+        _, encoded_frame = cv2.imencode('.jpg', gray_frame)
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded_frame) + b'\r\n')
+
+    cap.release()
 
 
+@fastapi_app.post("/uploadvideo")
+async def upload_video(video: UploadFile = File(...)):
+    contents = await video.read()
+    with open("uploaded_video.mp4", "wb") as f:
+        f.write(contents)
 
-
+    return StreamingResponse(generate_frames("uploaded_video.mp4"), media_type="multipart/x-mixed-replace; boundary=frame")
 
 
 if __name__ == "__main__":
-    uvicorn.run('main:fastapi_app', 
-            host='localhost', port=9000, reload=False)
+    uvicorn.run('main:fastapi_app',
+                host='localhost', port=9000, reload=False)
