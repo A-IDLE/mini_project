@@ -1,3 +1,6 @@
+# This is a list of Python packages required for the mini_project
+# pip install -r requirements.txt
+
 annotated-types==0.6.0
 anyio==4.3.0
 click==8.1.7
