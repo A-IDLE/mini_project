@@ -4,11 +4,20 @@ import json
 import requests
 from bs4 import BeautifulSoup
 import json
+import torch
+import math
 
+from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
+
+model_name = "jaehyeong/koelectra-base-v3-generalized-sentiment-analysis"
+model = AutoModelForSequenceClassification.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+# 파이프라인 생성
+classifier = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
 
 client_id = "SJ3xMvTBxcs9DUafVWMw"
 client_secret = "I54Gwgi6yE"
-
 
 # url request
 def getRequestUrl(url):
@@ -26,25 +35,22 @@ def getRequestUrl(url):
         print("[%s] Error for URL : %s" % (datetime.datetime.now(), url))
         return None
 
-
 # naver search
-def getNaverSearch(node, srcText, start, display):
+def getNaverSearch(node, srcText, start, display, emotion):
     base = "https://openapi.naver.com/v1/search"
     node = "/%s.json" % node
-    parameters = "?query=%s&start=%s&display=%s" % (
-        urllib.parse.quote(srcText), start, display)
+    parameters = "?query=%s&start=%s&display=%s&emotion=%s" % (
+        urllib.parse.quote(srcText), start, display, urllib.parse.quote(str(emotion)))
 
     url = base + node + parameters
-    responseDecode = getRequestUrl(url)  # [CODE 1]
+    responseDecode = getRequestUrl(url)
 
-    if (responseDecode == None):
+    if (responseDecode is None):
         return None
     else:
         return json.loads(responseDecode)
 
 # get full article
-
-
 def get_full_article(url):
     try:
         response = requests.get(url)
@@ -56,8 +62,7 @@ def get_full_article(url):
         print(f"Error retrieving article from {url}: {e}")
         return None
 
-
-# params: 검색어 = srcText , 검색수(총 몇개 검색) == srcCnt
+# 수정된 함수
 async def crawling(srcText: str, srcCnt: int):
     node = 'news'  # 크롤링 할 대상
     srcText = srcText
@@ -65,22 +70,36 @@ async def crawling(srcText: str, srcCnt: int):
     jsonResult = []
     start = 1
     display = 10  # 한 번에 가져올 아이템 수
+    emotion = None
 
     while cnt < srcCnt:
         jsonResponse = getNaverSearch(
-            node, srcText, start, display)  # [CODE 2]
+            node, srcText, start, display, emotion)  # [CODE 2]
         if jsonResponse['total'] > 0:
             for post in jsonResponse['items']:
                 if 'naver' in post['link']:  # 'naver'가 포함된 'link'만 선택
                     full_text = get_full_article(post['link'])
                     if full_text:
+                        # 모델을 사용하여 감정 분류
+                        inputs = tokenizer(full_text, return_tensors="pt", max_length=512, truncation=True)
+                        outputs = model(**inputs)
+                        predicted_class = torch.argmax(outputs.logits).item()
+                        
+                        # 'label'을 기반으로 감정을 설정
+                        if predicted_class == 1:
+                            emotion = "긍정적인 감정"
+                        else:
+                            emotion = "부정적인 감정"
+                        print(predicted_class)
+                        
                         jsonResult.append({
                             'cnt': cnt,
                             'title': post['title'],
                             'description': post['description'],
                             'org_link': post['originallink'],
                             'link': post['link'],
-                            'full_text': full_text
+                            'full_text': full_text,
+                            'emotion': emotion
                         })
                         cnt += 1
                         if cnt == srcCnt:
