@@ -13,10 +13,12 @@ templates = Jinja2Templates(directory="templates")
 async def summary_news_route(request: Request):
     # 요청 본문에서 텍스트 추출
     data = await request.json()
-    text = data["text"]
+    newsChunk = data["text"]
 
     # 요약 함수 실행
-    summary = await summarize_news(text)
+    summary = await summarize_news(newsChunk)
+
+    print(summary)
 
     # 응답 JSON으로 변환
     response = {"summary": summary}
