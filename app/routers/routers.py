@@ -38,7 +38,7 @@ async def search_news(request: Request):
     print(srcText)
 
     # 몇개의 결과를 찾을 것인지
-    srcCnt = 10
+    srcCnt = 1
 
     # 요약 함수 실행
     search_result = await crawling(srcText, srcCnt)
