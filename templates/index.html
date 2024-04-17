@@ -86,6 +86,11 @@
                 articleHeader.textContent = article.title;
                 articleElement.appendChild(articleHeader);
 
+                // 감정
+                const articleEmotion = document.createElement("emotion");
+                articleEmotion.textContent = article.emotion;
+                articleElement.appendChild(articleEmotion);
+
                 // Create an article description
                 const articleDescription = document.createElement("div");
                 articleDescription.textContent = article.description;
