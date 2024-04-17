@@ -1,13 +1,18 @@
+import os
 import urllib.request
 import datetime
 import json
 import requests
 from bs4 import BeautifulSoup
 import json
+from dotenv import load_dotenv
+from pathlib import Path
 
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
 
-client_id = "SJ3xMvTBxcs9DUafVWMw"
-client_secret = "I54Gwgi6yE"
+client_id = os.getenv('CLIENT_ID')
+client_secret = os.getenv('CLIENT_SECRET')
 
 
 # url request

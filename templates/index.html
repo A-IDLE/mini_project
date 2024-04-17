@@ -33,12 +33,6 @@
       </div>
     </form>
 
-    <div class="search-result">
-      <h2 class="search-result__title"></h2>
-      <p class="search-result__description"></p>
-      <a href="" class="search-result__link">Read more</a>
-    </div>
-
     <div class="summary-container">
       <div class="summary-header">
         <!--
@@ -98,10 +92,36 @@
                 articleDescription.textContent = article.description;
                 articleElement.appendChild(articleDescription);
 
+                // Create an article detail
+                const articleDetail = document.createElement("p");
+                articleDetail.textContent = article.full_text;
+                articleDetail.style.display = "none";
+                articleElement.appendChild(articleDetail);
+
+                // Create an article See More
+                const articleSeeMore = document.createElement("div");
+                articleSeeMore.classList.add("buttons");
+                articleSeeMore.textContent = "Read More";
+                articleElement.appendChild(articleSeeMore);
+
+                // Add click event listener to "Read More" link
+                articleSeeMore.addEventListener("click", function (event) {
+                  event.preventDefault();
+                  // Toggle display of article detail
+                  if (articleDetail.style.display === "none") {
+                    articleDetail.style.display = "block";
+                    articleSeeMore.textContent = "Read Less";
+                  } else {
+                    articleDetail.style.display = "none";
+                    articleSeeMore.textContent = "Read More";
+                  }
+                });
+
                 // Create an article link
-                const articleLink = document.createElement("a");
+                const articleLink = document.createElement("div");
+                articleLink.classList.add("buttons");
                 articleLink.href = article.link;
-                articleLink.textContent = "Read More";
+                articleLink.textContent = "Link";
                 articleElement.appendChild(articleLink);
 
                 // Append the article element to the container
@@ -112,6 +132,7 @@
               const existingArticlesContainer = document.querySelector(
                 ".articles-container"
               );
+
               if (existingArticlesContainer) {
                 existingArticlesContainer.parentNode.replaceChild(
                   articlesContainer,
