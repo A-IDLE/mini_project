@@ -1,11 +1,8 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from datetime import datetime, timedelta
-import mysql.connector
-from pydantic import BaseModel
-from typing import List, Optional
-from fastapi import HTTPException
+from datetime import datetime
+from typing import List
 import re
 import pandas as pd
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -17,16 +14,11 @@ import logging
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
-
-class summaryDTO(BaseModel):
-    newsChunk: str
-
-
 # 실행 무시를 위한 전역 변수
 ignore_until = None
 
 
-async def summary_news(newsChunk: str):
+async def summarize_news(newsChunk: str):
     global ignore_until
 
     # 현재 시간
@@ -51,8 +43,7 @@ async def summary_news(newsChunk: str):
     # Google API 키 호출
     google_api_key = os.getenv('GOOGLE_API_KEY')
 
-    # ai프롬포트 : 한국어일시 한국어로, 영어일시 영어로 입력됨
-    # message_content = "내용을 바탕으로 오늘의 이슈 요약본을 작성해라. 내용만 작성한다. 다섯 문단으로 나누어져 있어야 하고, 글자 개수는 반드시 한국어 1500자 이상이어야 한다. ~습니다. 입니다. 로 끝나는 존칭이 담긴 정중한 어투여야 하고, 친절하게 말해야 한다. 인사와 날짜는 생략하고 본론만 이야기 해야 한다. 주제의 끝 마다 엔터를 두 번 작성해 단락을 끊어야 한다. 굵은 글씨(**)를 사용하지 않는다."
+    # ai프롬포트
     message_content = "내용을 바탕으로 오늘의 이슈 요약본을 작성해라. 내용만 작성한다. 주제별로 문단으로 나누어져 있어야 한다. ~습니다. 입니다. 로 끝나는 존칭이 담긴 정중한 어투여야 하고, 친절하게 말해야 한다. 인사와 날짜는 생략하고 본론만 이야기 해야 한다. 주제의 끝 마다 엔터를 두 번 작성해 단락을 끊어야 한다. 굵은 글씨(**)를 사용하지 않는다."
 
     # ai 모델: gemini-pro
@@ -62,12 +53,13 @@ async def summary_news(newsChunk: str):
     # 정형화된 데이터 출력 및 AI 요약 생성
     try:
         result = model([
-            SystemMessage(content=message_content), # prompt
-            HumanMessage(content=cleaned_Chunk) # input data
+            SystemMessage(content=message_content),  # prompt
+            HumanMessage(content=cleaned_Chunk)  # input data
         ])
 
         extracted_chunks = result.content
-        
+
+    # 에러 핸들링
     except Exception as e:
         print(f"Error during AI description generation: {e}")
         extracted_chunks = "Error"  # 예외가 발생한 경우, 여기에서 할당
