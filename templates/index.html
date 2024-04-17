@@ -33,21 +33,20 @@
       </div>
     </form>
 
-    <div class="summary-container">
-      <div class="summary-header">
-        <!--
+    <!--
            article.title   article.description  article.link 
         <div class="positive-summary selected">긍정 요약</div>
         <div class="negative-summary">부정 요약</div>
         -->
-      </div>
-      <!-- <div class="summary-content">
-        <div class="css-4a3h28">{{ summary_response.positive_summary }}</div>
-      </div>
-      <div class="summary-content">
-        <div class="css-4a3h28">{{ summary_response.negative_summary }}</div>
-      </div> -->
-    </div>
+
+    <!--
+        <div class="summary-content">
+          <div class="css-4a3h28">{{ summary_response.positive_summary }}</div>
+        </div>
+        <div class="summary-content">
+          <div class="css-4a3h28">{{ summary_response.negative_summary }}</div>
+        </div>
+      -->
 
     <script>
       document
@@ -88,7 +87,7 @@
                 articleElement.appendChild(articleHeader);
 
                 // Create an article description
-                const articleDescription = document.createElement("p");
+                const articleDescription = document.createElement("div");
                 articleDescription.textContent = article.description;
                 articleElement.appendChild(articleDescription);
 
@@ -110,9 +109,11 @@
                   // Toggle display of article detail
                   if (articleDetail.style.display === "none") {
                     articleDetail.style.display = "block";
+                    articleDescription.style.display = "none";
                     articleSeeMore.textContent = "Read Less";
                   } else {
                     articleDetail.style.display = "none";
+                    articleDescription.style.display = "block";
                     articleSeeMore.textContent = "Read More";
                   }
                 });
@@ -123,6 +124,59 @@
                 articleLink.href = article.link;
                 articleLink.textContent = "Link";
                 articleElement.appendChild(articleLink);
+
+                // Create ai summarize button
+                const aiSummarize = document.createElement("div");
+                aiSummarize.classList.add("buttons");
+                aiSummarize.textContent = "AI로 요약하기";
+                articleElement.appendChild(aiSummarize);
+
+                aiSummarize.addEventListener("click", function (event) {
+                  event.preventDefault();
+
+                  const news_data = articleDetail.textContent;
+
+                  // Create a JSON object with the search query
+                  const data = {
+                    text: news_data,
+                  };
+
+                  // Send the JSON data using fetch or XMLHttpRequest
+                  fetch("/summary", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  })
+                    .then((response) => response.json())
+                    .then((data) => {
+                      const aiSummary = data.summary;
+                      articleDetail.textContent = aiSummary;
+
+                      const newsContainer = articleDetail;
+                      const newsItem = document.createElement("div");
+                      newsItem.classList.add("news-item");
+                      const paragraphs = aiSummary.split("**").filter(Boolean); // **를 기준으로 뉴스를 분리하고 빈 문자열을 필터링합니다.
+
+                      let cnt = 1;
+                      articleDetail.textContent = "";
+                      paragraphs.forEach((paragraph) => {
+                        const p = document.createElement("p");
+
+                        if (cnt % 2 == 0) {
+                          p.textContent = `${paragraph}`;
+                        } else {
+                          p.textContent = `**${paragraph}**`;
+                        }
+
+                        newsItem.appendChild(p);
+                        cnt++;
+                      });
+                      newsContainer.appendChild(newsItem);
+                    })
+                    .catch((error) => {
+                      console.error("Error fetching search:", error);
+                    });
+                });
 
                 // Append the article element to the container
                 articlesContainer.appendChild(articleElement);
