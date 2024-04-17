@@ -130,3 +130,7 @@ dmypy.json
 
 # FastAPI specific
 *.db
+
+
+naver_news.json
+**/naver_news.json
