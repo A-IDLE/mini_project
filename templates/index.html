@@ -76,6 +76,7 @@
       });
 
       let isSending = 0;
+      let isSearching = 0;
 
       document
         .getElementById("search-icon")
@@ -89,7 +90,7 @@
           };
 
           document.getElementById("loadingIndicator").style.display = "block";
-          isSending = 1;
+          isSearching = 1;
 
           // Send the JSON data using fetch or XMLHttpRequest
           fetch("/search", {
@@ -101,7 +102,7 @@
             .then((data) => {
               document.getElementById("loadingIndicator").style.display =
                 "none";
-              isSending = 0;
+              isSearching = 0;
 
               console.log(data);
               const articles = data.articles;
@@ -167,7 +168,6 @@
                 const articlePubDate = document.createElement("pub_date");
                 articlePubDate.textContent = article.pub_date;
                 articleElement.appendChild(articlePubDate);
-                
 
                 // Create an article description
                 const articleDescription = document.createElement("div");
@@ -314,7 +314,7 @@
 
               document.getElementById("loadingIndicator").style.display =
                 "none";
-              isSending = 0;
+              isSearching = 0;
             });
 
           // Prevent default form submission behavior
