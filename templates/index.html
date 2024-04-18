@@ -86,6 +86,11 @@
                 articleHeader.textContent = article.title;
                 articleElement.appendChild(articleHeader);
 
+                // 기사 등록날짜
+                const articlePubDate = document.createElement("pub_date");
+                articlePubDate.textContent = article.pub_date;
+                articleElement.appendChild(articlePubDate);
+
                 // 감정
                 const articleEmotion = document.createElement("emotion");
                 articleEmotion.textContent = article.emotion;

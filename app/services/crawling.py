@@ -37,11 +37,11 @@ def getRequestUrl(url):
         return None
 
 # naver search
-def getNaverSearch(node, srcText, start, display, emotion):
+def getNaverSearch(node, srcText, start, display, emotion, pubDate):
     base = "https://openapi.naver.com/v1/search"
     node = "/%s.json" % node
-    parameters = "?query=%s&start=%s&display=%s&emotion=%s" % (
-        urllib.parse.quote(srcText), start, display, urllib.parse.quote(str(emotion)))
+    parameters = "?query=%s&start=%s&display=%s&emotion=%s&pubDate%s" % (
+        urllib.parse.quote(srcText), start, display, urllib.parse.quote(str(emotion)), pubDate)
 
     url = base + node + parameters
     responseDecode = getRequestUrl(url)
@@ -72,10 +72,11 @@ async def crawling(srcText: str, srcCnt: int):
     start = 1
     display = 10  # 한 번에 가져올 아이템 수
     emotion = None
+    pubDate = ''
 
     while cnt < srcCnt:
         jsonResponse = getNaverSearch(
-            node, srcText, start, display, emotion)  # [CODE 2]
+            node, srcText, start, display, emotion, pubDate)  # [CODE 2]
         if jsonResponse['total'] > 0:
             for post in jsonResponse['items']:
                 if 'naver' in post['link']:  # 'naver'가 포함된 'link'만 선택
@@ -100,7 +101,8 @@ async def crawling(srcText: str, srcCnt: int):
                             'org_link': post['originallink'],
                             'link': post['link'],
                             'full_text': full_text,
-                            'emotion': emotion
+                            'emotion': emotion,
+                            'pub_date': post['pubDate']
                         })
                         cnt += 1
                         if cnt == srcCnt:
