@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Request, Form, Depends, BackgroundTasks
 from app.services.summarize import summarize_news
 from app.services.crawling import crawling
 from app.schemas.schemas import SearchQuery
@@ -31,7 +31,7 @@ async def summary_news_route(request: Request,db: Session = Depends(get_db)):
     existing_news = db.query(News).filter(News.link == link).first()
     if existing_news.summarized_text:
         print("요약 있다")
-        summary = existing_news.summarized_text
+        summary = existing_news.summarized_text[:2400]
     else:
         # 요약 함수 실행
         summary = await summarize_news(newsChunk)
@@ -48,7 +48,7 @@ async def summary_news_route(request: Request,db: Session = Depends(get_db)):
 
 
 @router.post("/search")
-async def search_news(request: Request,db: Session = Depends(get_db)):
+async def search_news(background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
 
     print("request")
 
@@ -64,6 +64,15 @@ async def search_news(request: Request,db: Session = Depends(get_db)):
     # 요약 함수 실행
     search_result = await crawling(srcText, srcCnt)
 
+    # background_tasks를 사용하여 DB 검색 및 저장을 백그라운드 작업으로 추가
+    background_tasks.add_task(save_news, db, search_result, srcText)
+
+    # 응답 JSON으로 변환
+    response = {"articles": search_result}
+    return response
+
+async def save_news(db, search_result, srcText):
+    print("save_news")
     for article in search_result:
         # 해당 뉴스가 이미 있는지 확인합니다.
         existing_news = db.query(News).filter(News.link == article['link']).first()
@@ -71,14 +80,7 @@ async def search_news(request: Request,db: Session = Depends(get_db)):
             print(article['emotion'])
         else:
             # news 테이블에 새로운 레코드를 추가합니다.
-            add_news = News(title=article['title'], description=article['description'], org_link=article['org_link'], link=article['link'], full_text=article['full_text'][:10000], keyword=srcText, emotion=article['emotion'], postive_percent=article['postive_percent'], negative_percent=article['negative_percent'])
+            add_news = News(title=article['title'], description=article['description'], org_link=article['org_link'], link=article['link'], full_text=article['full_text'][:11400], keyword=srcText, emotion=article['emotion'], postive_percent=article['postive_percent'], negative_percent=article['negative_percent'])
             db.add(add_news)
     # 변경사항을 커밋합니다.
     db.commit()
-    # 응답 JSON으로 변환
-    response = {"articles": search_result}
-
-    return response
-
-    # return templates.TemplateResponse("index.html",
-    #                                   {"articles": search_result})

@@ -131,6 +131,6 @@ dmypy.json
 # FastAPI specific
 *.db
 
-
+.__pycache__
 naver_news.json
 **/naver_news.json
