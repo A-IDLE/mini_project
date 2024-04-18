@@ -4,9 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="/templates/index.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
     <title>뉴스 요약</title>
   </head>
   <body>
+    <div class="title_section">
+      <img class="title_icon" src="/icons/noun-newspaper-6780671.png">
+      <span class="page_title">뉴스미니룸</span>
+    </div>
     <form id="search_news" action="/search" method="post">
       <div class="search-container">
         <div class="search-input-wrapper">
@@ -130,7 +137,6 @@
                 smileIcon.style.marginLeft = "15px";
                 smileIcon.style.height = "30px";
                 smileIcon.style.verticalAlign = "middle";
-                smileIcon.style.filter = "hue-rotate(200deg)"; // 파란색 톤으로 변경
 
                 const posText = document.createElement("span");
                 posText.textContent = article.postive_percent + "%";

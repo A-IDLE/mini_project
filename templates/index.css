@@ -167,3 +167,22 @@
   background-color: #0056b3;
 }
 
+.title_section{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  margin-bottom: -15px;
+}
+.page_title {
+  font-size: 40px;  
+  font-family: "Black Han Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  margin-top: 10px;
+  margin-left: 5px;
+  color: #082c48;
+}
+.title_icon{
+  height: 40px;
+}
