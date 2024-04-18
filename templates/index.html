@@ -76,11 +76,15 @@
               // Create a container element for the articles
               const articlesContainer = document.createElement("div");
               articlesContainer.classList.add("articles-container");
+              articlesContainer.style.width = "80%";
+              articlesContainer.style.margin = "0 auto";
+              articlesContainer.style.marginTop = "3rem";
 
               // Iterate through the articles array
               for (const article of articles) {
                 // Create an article element
                 const articleElement = document.createElement("article");
+                articleElement.style.borderRadius = "20px";
                 articleElement.classList.add("article");
 
                 // Create an article header
