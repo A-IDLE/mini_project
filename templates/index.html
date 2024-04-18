@@ -33,6 +33,24 @@
       </div>
     </form>
 
+    <div
+      id="loadingIndicator"
+      style="
+        display: none;
+        position: fixed;
+        left: 50%;
+        top: 40%;
+        transform: translate(-50%, -50%);
+      "
+    >
+      <img
+        src="/icons/loading.gif"
+        alt="Loading..."
+        width="200px"
+        height="200px"
+      />
+    </div>
+
     <!--
            article.title   article.description  article.link 
         <div class="positive-summary selected">긍정 요약</div>
@@ -49,12 +67,11 @@
       -->
 
     <script>
-
-      document.addEventListener("keydown", function(event) {
+      document.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
-          event.preventDefault();  // 엔터키의 기본 동작을 막음
+          event.preventDefault(); // 엔터키의 기본 동작을 막음
           const searchIcon = document.getElementById("search-icon");
-          searchIcon.click();  // 검색 아이콘 클릭 이벤트 발생
+          searchIcon.click(); // 검색 아이콘 클릭 이벤트 발생
         }
       });
 
@@ -71,6 +88,9 @@
             text: searchQuery,
           };
 
+          document.getElementById("loadingIndicator").style.display = "block";
+          isSending = 1;
+
           // Send the JSON data using fetch or XMLHttpRequest
           fetch("/search", {
             method: "POST",
@@ -79,6 +99,10 @@
           })
             .then((response) => response.json())
             .then((data) => {
+              document.getElementById("loadingIndicator").style.display =
+                "none";
+              isSending = 0;
+
               console.log(data);
               const articles = data.articles;
 
@@ -108,13 +132,13 @@
                 smileIcon.style.verticalAlign = "middle";
                 smileIcon.style.filter = "hue-rotate(200deg)"; // 파란색 톤으로 변경
 
-
                 const posText = document.createElement("span");
                 posText.textContent = article.postive_percent + "%";
-                posText.style.cssText = "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
+                posText.style.cssText =
+                  "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
 
                 if (article.emotion === "pos_emo") {
-                    posText.style.fontWeight = "bold"; // 'posText'에 bold 스타일 적용
+                  posText.style.fontWeight = "bold"; // 'posText'에 bold 스타일 적용
                 }
 
                 const sadIcon = document.createElement("img");
@@ -125,16 +149,17 @@
 
                 const negText = document.createElement("span");
                 negText.textContent = article.negative_percent + "%";
-                negText.style.cssText = "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
+                negText.style.cssText =
+                  "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
 
                 if (article.emotion === "neg_emo") {
-                    negText.style.fontWeight = "bold"; // 'negText'에 bold 스타일 적용
+                  negText.style.fontWeight = "bold"; // 'negText'에 bold 스타일 적용
                 }
 
-                articleHeader.appendChild(smileIcon); 
-                articleHeader.appendChild(posText); 
-                articleHeader.appendChild(sadIcon); 
-                articleHeader.appendChild(negText);  
+                articleHeader.appendChild(smileIcon);
+                articleHeader.appendChild(posText);
+                articleHeader.appendChild(sadIcon);
+                articleHeader.appendChild(negText);
 
                 articleElement.appendChild(articleHeader);
 
@@ -181,9 +206,9 @@
                 const articleLink = document.createElement("a");
                 articleLink.classList.add("buttons");
                 articleLink.href = article.link;
-                articleLink.target = "_blank";  // 링크를 새 창으로 열기 위해 target 속성 추가
+                articleLink.target = "_blank"; // 링크를 새 창으로 열기 위해 target 속성 추가
                 articleLink.textContent = "Link";
-                articleLink.style.color = "#FFFFFF";  // 흰색 색상 코드
+                articleLink.style.color = "#FFFFFF"; // 흰색 색상 코드
                 articleElement.appendChild(articleLink);
 
                 // Create ai summarize button
@@ -201,6 +226,8 @@
                   } else {
                     isSending = 1;
                     aiSummarize.disabled = true;
+                    document.getElementById("loadingIndicator").style.display =
+                      "block"; // 로딩 인디케이터 표시
 
                     const news_data = articleDetail.textContent;
 
@@ -217,9 +244,10 @@
                     })
                       .then((response) => response.json())
                       .then((data) => {
-                        alert("ai가 요약을 완료했어요");
-
                         aiSummarize.style.display = "none";
+                        document.getElementById(
+                          "loadingIndicator"
+                        ).style.display = "none"; // 로딩 인디케이터 숨김
 
                         const aiSummary = data.summary;
                         articleDetail.textContent = aiSummary;
@@ -252,6 +280,9 @@
                       })
                       .catch((error) => {
                         console.error("Error fetching search:", error);
+                        document.getElementById(
+                          "loadingIndicator"
+                        ).style.display = "none"; // 로딩 인디케이터 숨김
                         aiSummarize.disabled = false;
                         isSending = 0;
                       });
@@ -278,6 +309,10 @@
             })
             .catch((error) => {
               console.error("Error fetching search:", error);
+
+              document.getElementById("loadingIndicator").style.display =
+                "none";
+              isSending = 0;
             });
 
           // Prevent default form submission behavior
