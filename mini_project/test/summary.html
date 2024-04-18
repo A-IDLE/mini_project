@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>요약 서비스</title>
+  </head>
+  <body>
+    <header>
+      <h1>입력 요약 서비스</h1>
+    </header>
+
+    <main>
+      <section class="input-section">
+        <h2>입력</h2>
+        <textarea
+          id="input-text"
+          placeholder="여기에 요약하고 싶은 텍스트를 입력하세요"
+        ></textarea>
+      </section>
+
+      <section class="summary-section">
+        <h2>요약</h2>
+        <p id="summary-text"></p>
+      </section>
+
+      <button id="summarize-button">요약하기</button>
+    </main>
+
+    <script>
+      const summarizeButton = document.getElementById("summarize-button");
+      const inputText = document.getElementById("input-text");
+      const summaryText = document.getElementById("summary-text");
+
+      summarizeButton.addEventListener("click", async () => {
+        const text = inputText.value;
+
+        // 백엔드 API 호출
+        const response = await fetch("/summary", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: text }),
+        });
+
+        // JSON 응답 처리
+        const data = await response.json();
+        const summary = data.summary;
+
+        // 요약 결과 표시
+        summaryText.textContent = summary;
+      });
+    </script>
+  </body>
+</html>

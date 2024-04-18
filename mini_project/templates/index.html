@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/templates/index.css" rel="stylesheet" />
+    <title>뉴스 요약</title>
+  </head>
+  <body>
+    <form id="search_news" action="/search" method="post">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <input
+            type="search"
+            name="title"
+            class="search-input"
+            placeholder="뉴스를 찾아보세요˶•⩊•˶"
+            value=""
+            maxlength="50"
+            autofocus=""
+            data-input-blur-exclusion="true"
+          />
+
+          <div id="search-icon" class="search-icon">
+            <svg viewBox="0 0 25 24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                clip-rule="evenodd"
+                d="M15.1721 15.9797C13.9056 16.9566 12.3181 17.5376 10.595 17.5376C6.45216 17.5376 3.09375 14.1792 3.09375 10.0364C3.09375 5.89357 6.45216 2.53516 10.595 2.53516C14.7378 2.53516 18.0962 5.89357 18.0962 10.0364C18.0962 11.9156 17.4051 13.6334 16.2633 14.9496L20.3746 19.0609C20.6675 19.3538 20.6675 19.8287 20.3746 20.1216C20.0817 20.4145 19.6068 20.4145 19.3139 20.1216L15.1721 15.9797ZM16.5962 10.0364C16.5962 13.3508 13.9094 16.0376 10.595 16.0376C7.28059 16.0376 4.59375 13.3508 4.59375 10.0364C4.59375 6.72199 7.28059 4.03516 10.595 4.03516C13.9094 4.03516 16.5962 6.72199 16.5962 10.0364Z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!--
+           article.title   article.description  article.link 
+        <div class="positive-summary selected">긍정 요약</div>
+        <div class="negative-summary">부정 요약</div>
+        -->
+
+    <!--
+        <div class="summary-content">
+          <div class="css-4a3h28">{{ summary_response.positive_summary }}</div>
+        </div>
+        <div class="summary-content">
+          <div class="css-4a3h28">{{ summary_response.negative_summary }}</div>
+        </div>
+      -->
+
+    <script>
+      document
+        .getElementById("search-icon")
+        .addEventListener("click", function () {
+          var formElement = document.getElementById("search_news");
+          const searchQuery = document.querySelector(".search-input").value;
+
+          // Create a JSON object with the search query
+          const data = {
+            text: searchQuery,
+          };
+
+          // Send the JSON data using fetch or XMLHttpRequest
+          fetch("/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log(data);
+              const articles = data.articles;
+
+              // Create a container element for the articles
+              const articlesContainer = document.createElement("div");
+              articlesContainer.classList.add("articles-container");
+
+              // Iterate through the articles array
+              for (const article of articles) {
+                // Create an article element
+                const articleElement = document.createElement("article");
+                articleElement.classList.add("article");
+
+                // Create an article header
+                const articleHeader = document.createElement("h2");
+                articleHeader.textContent = article.title;
+                articleElement.appendChild(articleHeader);
+
+                // 감정
+                const articleEmotion = document.createElement("emotion");
+                articleEmotion.textContent = article.emotion;
+                articleElement.appendChild(articleEmotion);
+
+                // Create an article description
+                const articleDescription = document.createElement("div");
+                articleDescription.textContent = article.description;
+                articleElement.appendChild(articleDescription);
+
+                // Create an article detail
+                const articleDetail = document.createElement("p");
+                articleDetail.textContent = article.full_text;
+                articleDetail.style.display = "none";
+                articleElement.appendChild(articleDetail);
+
+                // Create an article See More
+                const articleSeeMore = document.createElement("div");
+                articleSeeMore.classList.add("buttons");
+                articleSeeMore.textContent = "Read More";
+                articleElement.appendChild(articleSeeMore);
+
+                // Add click event listener to "Read More" link
+                articleSeeMore.addEventListener("click", function (event) {
+                  event.preventDefault();
+                  // Toggle display of article detail
+                  if (articleDetail.style.display === "none") {
+                    articleDetail.style.display = "block";
+                    articleDescription.style.display = "none";
+                    articleSeeMore.textContent = "Read Less";
+                  } else {
+                    articleDetail.style.display = "none";
+                    articleDescription.style.display = "block";
+                    articleSeeMore.textContent = "Read More";
+                  }
+                });
+
+                // Create an article link
+                const articleLink = document.createElement("div");
+                articleLink.classList.add("buttons");
+                articleLink.href = article.link;
+                articleLink.textContent = "Link";
+                articleElement.appendChild(articleLink);
+
+                // Create ai summarize button
+                const aiSummarize = document.createElement("div");
+                aiSummarize.classList.add("buttons");
+                aiSummarize.textContent = "AI로 요약하기";
+                articleElement.appendChild(aiSummarize);
+
+                aiSummarize.addEventListener("click", function (event) {
+                  event.preventDefault();
+
+                  const news_data = articleDetail.textContent;
+
+                  // Create a JSON object with the search query
+                  const data = {
+                    text: news_data,
+                  };
+
+                  // Send the JSON data using fetch or XMLHttpRequest
+                  fetch("/summary", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  })
+                    .then((response) => response.json())
+                    .then((data) => {
+                      const aiSummary = data.summary;
+                      articleDetail.textContent = aiSummary;
+
+                      const newsContainer = articleDetail;
+                      const newsItem = document.createElement("div");
+                      newsItem.classList.add("news-item");
+                      const paragraphs = aiSummary.split("**").filter(Boolean); // **를 기준으로 뉴스를 분리하고 빈 문자열을 필터링합니다.
+
+                      let cnt = 1;
+                      articleDetail.textContent = "";
+                      paragraphs.forEach((paragraph) => {
+                        const p = document.createElement("p");
+
+                        if (cnt % 2 == 0) {
+                          p.textContent = `${paragraph}`;
+                        } else {
+                          p.textContent = `**${paragraph}**`;
+                        }
+
+                        newsItem.appendChild(p);
+                        cnt++;
+                      });
+                      newsContainer.appendChild(newsItem);
+                    })
+                    .catch((error) => {
+                      console.error("Error fetching search:", error);
+                    });
+                });
+
+                // Append the article element to the container
+                articlesContainer.appendChild(articleElement);
+              }
+
+              // Replace the existing articles container with the generated one
+              const existingArticlesContainer = document.querySelector(
+                ".articles-container"
+              );
+
+              if (existingArticlesContainer) {
+                existingArticlesContainer.parentNode.replaceChild(
+                  articlesContainer,
+                  existingArticlesContainer
+                );
+              } else {
+                document.body.appendChild(articlesContainer);
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching search:", error);
+            });
+
+          // Prevent default form submission behavior
+          event.preventDefault();
+        });
+    </script>
+  </body>
+</html>
