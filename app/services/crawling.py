@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import torch
+import html
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -59,6 +60,17 @@ def get_full_article(url):
         print(f"Error retrieving article from {url}: {e}")
         return None
 
+# HTML 태그와 특수 문자 제거 함수
+def clean_text(text):
+    # BeautifulSoup를 사용하여 HTML 태그 제거
+    soup = BeautifulSoup(text, 'html.parser')
+    cleaned_text = soup.get_text(separator=' ', strip=True)
+    
+    # HTML 엔터티를 일반 문자로 변환
+    cleaned_text = html.unescape(cleaned_text)
+    
+    return cleaned_text
+
 # 수정된 함수
 async def crawling(srcText: str, srcCnt: int):
     node = 'news'
@@ -76,6 +88,10 @@ async def crawling(srcText: str, srcCnt: int):
                 if 'naver' in post['link']:
                     full_text = get_full_article(post['link'])
                     if full_text:
+                        # clean_text 함수를 사용하여 title과 description 정제
+                        cleaned_title = clean_text(post['title'])
+                        cleaned_description = clean_text(post['description'])
+
                         inputs = tokenizer(full_text, return_tensors="pt", max_length=512, truncation=True)
                         outputs = model(**inputs)
                         predicted_class = torch.argmax(outputs.logits).item()
@@ -93,8 +109,8 @@ async def crawling(srcText: str, srcCnt: int):
                         
                         jsonResult.append({
                             'cnt': cnt,
-                            'title': post['title'],
-                            'description': post['description'],
+                            'title': cleaned_title,
+                            'description': cleaned_description,
                             'org_link': post['originallink'],
                             'link': post['link'],
                             'full_text': full_text,
