@@ -5,15 +5,16 @@ import json
 import requests
 from bs4 import BeautifulSoup
 import json
-from dotenv import load_dotenv
-from pathlib import Path
+import torch
 
-env_path = Path('.') / '.env'
-load_dotenv(dotenv_path=env_path)
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+model_name = "jaehyeong/koelectra-base-v3-generalized-sentiment-analysis"
+model = AutoModelForSequenceClassification.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 client_id = os.getenv('CLIENT_ID')
 client_secret = os.getenv('CLIENT_SECRET')
-
 
 # url request
 def getRequestUrl(url):
@@ -31,25 +32,22 @@ def getRequestUrl(url):
         print("[%s] Error for URL : %s" % (datetime.datetime.now(), url))
         return None
 
-
 # naver search
-def getNaverSearch(node, srcText, start, display):
+def getNaverSearch(node, srcText, start, display, emotion):
     base = "https://openapi.naver.com/v1/search"
     node = "/%s.json" % node
-    parameters = "?query=%s&start=%s&display=%s" % (
-        urllib.parse.quote(srcText), start, display)
+    parameters = "?query=%s&start=%s&display=%s&emotion=%s" % (
+        urllib.parse.quote(srcText), start, display, urllib.parse.quote(str(emotion)))
 
     url = base + node + parameters
-    responseDecode = getRequestUrl(url)  # [CODE 1]
+    responseDecode = getRequestUrl(url)
 
-    if (responseDecode == None):
+    if (responseDecode is None):
         return None
     else:
         return json.loads(responseDecode)
 
 # get full article
-
-
 def get_full_article(url):
     try:
         response = requests.get(url)
@@ -61,48 +59,65 @@ def get_full_article(url):
         print(f"Error retrieving article from {url}: {e}")
         return None
 
-
-# params: 검색어 = srcText , 검색수(총 몇개 검색) == srcCnt
+# 수정된 함수
 async def crawling(srcText: str, srcCnt: int):
-    node = 'news'  # 크롤링 할 대상
+    node = 'news'
     srcText = srcText
     cnt = 0
     jsonResult = []
     start = 1
-    display = 10  # 한 번에 가져올 아이템 수
+    display = 10
+    emotion = None
 
     while cnt < srcCnt:
-        jsonResponse = getNaverSearch(
-            node, srcText, start, display)  # [CODE 2]
+        jsonResponse = getNaverSearch(node, srcText, start, display, emotion)
         if jsonResponse['total'] > 0:
             for post in jsonResponse['items']:
-                if 'naver' in post['link']:  # 'naver'가 포함된 'link'만 선택
+                if 'naver' in post['link']:
                     full_text = get_full_article(post['link'])
                     if full_text:
+                        inputs = tokenizer(full_text, return_tensors="pt", max_length=512, truncation=True)
+                        outputs = model(**inputs)
+                        predicted_class = torch.argmax(outputs.logits).item()
+                        
+                        if predicted_class == 1:
+                            emotion = "pos_emo"
+                        else:
+                            emotion = "neg_emo"
+                        print(predicted_class)
+                        
+                        # 감성 스코어 계산
+                        score = torch.softmax(outputs.logits, dim=1)[0].tolist()
+                        positive_score = score[1]
+                        negative_score = score[0]
+                        
                         jsonResult.append({
                             'cnt': cnt,
                             'title': post['title'],
                             'description': post['description'],
                             'org_link': post['originallink'],
                             'link': post['link'],
-                            'full_text': full_text
+                            'full_text': full_text,
+                            'emotion': emotion,
+                            'positive_score': positive_score,
+                            'postive_percent': round(float(positive_score) * 100),
+                            'negative_score': negative_score,
+                            'negative_percent': round(float(negative_score) * 100),
                         })
                         cnt += 1
                         if cnt == srcCnt:
                             break
         else:
-            print("더 이상 결과가 없습니다.")
+            print("No more results.")
             break
-        start += display  # 다음 페이지로 이동
+        start += display
 
-    print('전체 검색 : %d 건' % len(jsonResult))
+    print('Total search results: %d' % len(jsonResult))
 
-    # with open('%s_naver_%s.json' % (srcText, node), 'w', encoding='utf8') as outfile:
-    #     jsonFile = json.dumps(jsonResult, indent=4,
-    #                           sort_keys=True, ensure_ascii=False)
-    #     outfile.write(jsonFile)
+    # 클라이언트 화면에 표시할 기사 수를 3개로 제한
+    limitedResult = jsonResult[:3]  # 상위 3개 결과 선택
 
-    print("가져온 데이터 : %d 건" % (cnt))
+    print("Data to be displayed on the client: %d items" % (len(limitedResult)))
     print('%s_naver_%s.json SAVED' % (srcText, node))
 
-    return jsonResult
+    return limitedResult

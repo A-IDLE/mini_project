@@ -90,6 +90,43 @@
                 // Create an article header
                 const articleHeader = document.createElement("h2");
                 articleHeader.textContent = article.title;
+                articleHeader.style.lineHeight = "1";
+
+                const smileIcon = document.createElement("img");
+                smileIcon.src = "/icons/noun-smile-6781535.png";
+                smileIcon.style.marginLeft = "15px";
+                smileIcon.style.height = "30px";
+                smileIcon.style.verticalAlign = "middle";
+                smileIcon.style.filter = "hue-rotate(200deg)"; // 파란색 톤으로 변경
+
+
+                const posText = document.createElement("span");
+                posText.textContent = article.postive_percent + "%";
+                posText.style.cssText = "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
+
+                if (article.emotion === "pos_emo") {
+                    posText.style.fontWeight = "bold"; // 'posText'에 bold 스타일 적용
+                }
+
+                const sadIcon = document.createElement("img");
+                sadIcon.src = "/icons/noun-sick-6781530.png";
+                sadIcon.style.marginLeft = "10px";
+                sadIcon.style.height = "30px";
+                sadIcon.style.verticalAlign = "middle";
+
+                const negText = document.createElement("span");
+                negText.textContent = article.negative_percent + "%";
+                negText.style.cssText = "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
+
+                if (article.emotion === "neg_emo") {
+                    negText.style.fontWeight = "bold"; // 'negText'에 bold 스타일 적용
+                }
+
+                articleHeader.appendChild(smileIcon); 
+                articleHeader.appendChild(posText); 
+                articleHeader.appendChild(sadIcon); 
+                articleHeader.appendChild(negText);  
+
                 articleElement.appendChild(articleHeader);
 
                 // Create an article description
@@ -144,7 +181,7 @@
                   event.preventDefault();
 
                   if (isSending == 1) {
-                    alert("ai가 열심히 요약하고 있습니다. 잠시만 기달려주세요");
+                    alert("ai가 열심히 요약하고 있습니다. 잠시만 기다려주세요");
                   } else {
                     isSending = 1;
                     aiSummarize.disabled = true;
