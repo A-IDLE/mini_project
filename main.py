@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from pathlib import Path
+import app.routers.models
 
 from app.routers.routers import router
 

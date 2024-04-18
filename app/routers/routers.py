@@ -1,13 +1,24 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, Depends
 from app.services.summarize import summarize_news
 from app.services.crawling import crawling
 from app.schemas.schemas import SearchQuery
 from fastapi.templating import Jinja2Templates
+from app.routers.models import News
+from app.routers.database import engine, SessionLocal
+from sqlalchemy.orm import Session
 
+# 여기서 데이터베이스 생성
+# models.Base.metadata.create_all(bind=engine)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @router.post("/summary")
 async def summary_news_route(request: Request):
@@ -27,7 +38,7 @@ async def summary_news_route(request: Request):
 
 
 @router.post("/search")
-async def search_news(request: Request):
+async def search_news(request: Request,db: Session = Depends(get_db)):
 
     print("request")
 
@@ -42,9 +53,18 @@ async def search_news(request: Request):
 
     # 요약 함수 실행
     search_result = await crawling(srcText, srcCnt)
-
-    print(search_result)
-
+    
+    for article in search_result:
+        # 해당 뉴스가 이미 있는지 확인합니다.
+        existing_news = db.query(News).filter(News.link == article['link']).first()
+        if existing_news:
+            print(article['title'])
+        else:
+            # news 테이블에 새로운 레코드를 추가합니다.
+            add_news = News(title=article['title'], description=article['description'], org_link=article['org_link'], link=article['link'], full_text=article['full_text'], keyword=srcText)
+            db.add(add_news)
+    # 변경사항을 커밋합니다.
+    db.commit()
     # 응답 JSON으로 변환
     response = {"articles": search_result}
 
