@@ -167,6 +167,7 @@
                 const articlePubDate = document.createElement("pub_date");
                 articlePubDate.textContent = article.pub_date;
                 articleElement.appendChild(articlePubDate);
+                
 
                 // Create an article description
                 const articleDescription = document.createElement("div");
@@ -234,6 +235,7 @@
                     // Create a JSON object with the search query
                     const data = {
                       text: news_data,
+                      link: article.link,
                     };
 
                     // Send the JSON data using fetch or XMLHttpRequest
