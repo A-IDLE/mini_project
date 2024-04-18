@@ -107,6 +107,10 @@ async def crawling(srcText: str, srcCnt: int):
                         positive_score = score[1]
                         negative_score = score[0]
                         
+                        # 날짜 포맷 변경
+                        pub_date = datetime.datetime.strptime(post['pubDate'], "%a, %d %b %Y %H:%M:%S %z")
+                        formatted_date = pub_date.strftime("%Y년 %m월 %d일 %A %H:%M")
+
                         jsonResult.append({
                             'cnt': cnt,
                             'title': cleaned_title,
@@ -119,7 +123,7 @@ async def crawling(srcText: str, srcCnt: int):
                             'postive_percent': round(float(positive_score) * 100),
                             'negative_score': negative_score,
                             'negative_percent': round(float(negative_score) * 100),
-                            'pub_date': post['pubDate']
+                            'pub_date': formatted_date
                         })
                         cnt += 1
                         if cnt == srcCnt:
