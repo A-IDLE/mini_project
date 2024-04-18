@@ -108,13 +108,13 @@
                 smileIcon.style.verticalAlign = "middle";
                 smileIcon.style.filter = "hue-rotate(200deg)"; // 파란색 톤으로 변경
 
-
                 const posText = document.createElement("span");
                 posText.textContent = article.postive_percent + "%";
-                posText.style.cssText = "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
+                posText.style.cssText =
+                  "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
 
                 if (article.emotion === "pos_emo") {
-                    posText.style.fontWeight = "bold"; // 'posText'에 bold 스타일 적용
+                  posText.style.fontWeight = "bold"; // 'posText'에 bold 스타일 적용
                 }
 
                 const sadIcon = document.createElement("img");
@@ -125,16 +125,17 @@
 
                 const negText = document.createElement("span");
                 negText.textContent = article.negative_percent + "%";
-                negText.style.cssText = "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
+                negText.style.cssText =
+                  "margin-left: 5px; font-weight: lighter; font-size: smaller; color: #424242;";
 
                 if (article.emotion === "neg_emo") {
-                    negText.style.fontWeight = "bold"; // 'negText'에 bold 스타일 적용
+                  negText.style.fontWeight = "bold"; // 'negText'에 bold 스타일 적용
                 }
 
-                articleHeader.appendChild(smileIcon); 
-                articleHeader.appendChild(posText); 
-                articleHeader.appendChild(sadIcon); 
-                articleHeader.appendChild(negText);  
+                articleHeader.appendChild(smileIcon);
+                articleHeader.appendChild(posText);
+                articleHeader.appendChild(sadIcon);
+                articleHeader.appendChild(negText);
 
                 articleElement.appendChild(articleHeader);
 
@@ -208,6 +209,7 @@
                     // Create a JSON object with the search query
                     const data = {
                       text: news_data,
+                      link: article.link,
                     };
 
                     // Send the JSON data using fetch or XMLHttpRequest
