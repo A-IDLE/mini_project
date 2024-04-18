@@ -16,6 +16,11 @@ fastapi_app.include_router(router)
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
+# Mount the icons directory as a StaticFiles
+fastapi_app.mount(
+    "/icons", StaticFiles(directory="icons"), name="icons"
+)
+
 templates = Jinja2Templates(directory="templates")
 
 fastapi_app.mount(
