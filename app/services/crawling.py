@@ -103,6 +103,7 @@ async def crawling(srcText: str, srcCnt: int):
                             'postive_percent': round(float(positive_score) * 100),
                             'negative_score': negative_score,
                             'negative_percent': round(float(negative_score) * 100),
+                            'pub_date': post['pubDate']
                         })
                         cnt += 1
                         if cnt == srcCnt:

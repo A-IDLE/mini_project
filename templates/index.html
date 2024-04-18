@@ -129,6 +129,11 @@
 
                 articleElement.appendChild(articleHeader);
 
+                // 기사 등록날짜
+                const articlePubDate = document.createElement("pub_date");
+                articlePubDate.textContent = article.pub_date;
+                articleElement.appendChild(articlePubDate);
+                
                 // Create an article description
                 const articleDescription = document.createElement("div");
                 articleDescription.textContent = article.description;
@@ -164,10 +169,12 @@
                 });
 
                 // Create an article link
-                const articleLink = document.createElement("div");
+                const articleLink = document.createElement("a");
                 articleLink.classList.add("buttons");
                 articleLink.href = article.link;
+                articleLink.target = "_blank";  // 링크를 새 창으로 열기 위해 target 속성 추가
                 articleLink.textContent = "Link";
+                articleLink.style.color = "#FFFFFF";  // 흰색 색상 코드
                 articleElement.appendChild(articleLink);
 
                 // Create ai summarize button
